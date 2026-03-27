@@ -1273,6 +1273,18 @@ class ZSDailyProphetCard extends i$2 {
     get isAnimatedFrontPage() {
         return this.config.style?.preset === 'stormfront_warning';
     }
+    get isUrithiruArchive() {
+        return !this.isAnimatedFrontPage && !this.isWeatherBureau;
+    }
+    get presetLayoutClass() {
+        if (this.isAnimatedFrontPage) {
+            return 'stormfront-layout';
+        }
+        if (this.isWeatherBureau) {
+            return 'navani-layout';
+        }
+        return 'urithiru-layout';
+    }
     get effectiveForecastMode() {
         const configured = this.config.layout?.forecast_mode || 'daily';
         return configured === 'hourly' ? 'hourly' : 'daily';
@@ -1557,12 +1569,14 @@ class ZSDailyProphetCard extends i$2 {
           <div class=${`hero-side ${this.config.style?.animated_hero ? 'animated' : ''}`}>
             <div class="storm-reading-card">
               <div class="current-label">${this.t.currentTitle}</div>
-              <div class="icon-medallion">${getConditionIcon(snapshot.condition)}</div>
-              <div class="bureau-reading">
-                <div class="temperature">${snapshot.temperature !== undefined ? `${Math.round(snapshot.temperature)}°` : '-'}</div>
-                <div class="condition">${conditionLabel}</div>
-                <div class="apparent">
-                  ${this.t.feelsLike}: ${snapshot.apparentTemperature !== undefined ? `${Math.round(snapshot.apparentTemperature)}°` : '-'}
+              <div class="archive-reading-grid">
+                <div class="icon-medallion">${getConditionIcon(snapshot.condition)}</div>
+                <div class="bureau-reading">
+                  <div class="temperature">${snapshot.temperature !== undefined ? `${Math.round(snapshot.temperature)}°` : '-'}</div>
+                  <div class="condition">${conditionLabel}</div>
+                  <div class="apparent">
+                    ${this.t.feelsLike}: ${snapshot.apparentTemperature !== undefined ? `${Math.round(snapshot.apparentTemperature)}°` : '-'}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1680,7 +1694,7 @@ class ZSDailyProphetCard extends i$2 {
         const conditionLabel = this.t.conditions[snapshot.condition] || snapshot.condition;
         return b `
       <ha-card style=${o(this.computeCardStyle())} @click=${() => this.openMoreInfo()}>
-        <div class=${`frame ${this.config.style?.paper_texture === false ? '' : 'paper-texture'} ${this.isWeatherBureau ? 'bureau-layout' : ''} ${this.isAnimatedFrontPage ? 'animated-layout' : ''}`}>
+        <div class=${`frame ${this.config.style?.paper_texture === false ? '' : 'paper-texture'} ${this.isWeatherBureau ? 'bureau-layout' : ''} ${this.isAnimatedFrontPage ? 'animated-layout' : ''} ${this.presetLayoutClass}`}>
           ${this.renderHeader(snapshot)}
 
           ${this.renderHero(snapshot, headline, facts, conditionLabel, forecastItems)}
@@ -2444,6 +2458,16 @@ ZSDailyProphetCard.styles = i$5 `
       text-align: center;
     }
 
+    .archive-reading-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: center;
+      width: 100%;
+    }
+
     .storm-reading-card,
     .storm-facts-card {
       position: relative;
@@ -2727,6 +2751,301 @@ ZSDailyProphetCard.styles = i$5 `
       text-align: center;
     }
 
+    .urithiru-layout .lead {
+      background:
+        linear-gradient(180deg, rgba(240,247,250,0.54), rgba(181,202,215,0.18)),
+        linear-gradient(135deg, rgba(127,169,195,0.12), transparent 58%);
+      border-color: rgba(84, 117, 139, 0.2);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    .urithiru-layout .storm-facts-card {
+      background:
+        linear-gradient(180deg, rgba(226,235,240,0.78), rgba(184,199,209,0.32)),
+        linear-gradient(90deg, rgba(127,169,195,0.1), transparent 48%);
+      border-color: rgba(84, 117, 139, 0.18);
+    }
+
+    .urithiru-layout .hero-side {
+      background:
+        radial-gradient(circle at top, rgba(210,232,246,0.38), transparent 30%),
+        linear-gradient(180deg, rgba(90,117,136,0.28), rgba(45,61,74,0.1)),
+        linear-gradient(180deg, rgba(224,232,238,0.92), rgba(163,178,190,0.86));
+      border-color: rgba(84, 117, 139, 0.24);
+    }
+
+    .urithiru-layout .storm-reading-card {
+      padding: 6px;
+      background:
+        linear-gradient(180deg, rgba(236,243,247,0.82), rgba(172,188,200,0.28)),
+        linear-gradient(135deg, rgba(127,169,195,0.18), transparent 52%);
+      border-left: 4px solid color-mix(in srgb, var(--zs-prophet-accent) 72%, white);
+      border-radius: 18px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.38);
+    }
+
+    .urithiru-layout .storm-reading-card > .bureau-reading {
+      padding: 0;
+      justify-items: start;
+      text-align: left;
+    }
+
+    .urithiru-layout .archive-reading-grid {
+      padding: 0 14px 14px;
+    }
+
+    .urithiru-layout .storm-reading-card .icon-medallion {
+      width: 110px;
+      height: 110px;
+      margin: 0;
+    }
+
+    .urithiru-layout .current-label,
+    .urithiru-layout .facts-label {
+      color: color-mix(in srgb, var(--zs-prophet-accent) 68%, var(--zs-prophet-ink));
+    }
+
+    .urithiru-layout .icon-medallion {
+      background:
+        radial-gradient(circle at 50% 30%, rgba(255,255,255,0.92), rgba(195,217,231,0.8) 56%, rgba(79,109,132,0.92) 100%);
+      border-color: color-mix(in srgb, var(--zs-prophet-border) 74%, white);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.62), 0 18px 30px rgba(48, 70, 88, 0.18);
+      color: #1a3342;
+    }
+
+    .urithiru-layout .fact,
+    .urithiru-layout .almanac-item {
+      background: rgba(229, 238, 244, 0.62);
+      border-color: rgba(84, 117, 139, 0.16);
+    }
+
+    .urithiru-layout .forecast-item {
+      background:
+        linear-gradient(180deg, rgba(236,243,247,0.72), rgba(174,192,203,0.24)),
+        rgba(255,255,255,0.12);
+      border-color: rgba(84, 117, 139, 0.18);
+    }
+
+    .stormfront-layout .frame {
+      background:
+        linear-gradient(180deg, rgba(17,26,38,0.92), rgba(9,15,24,0.96)),
+        linear-gradient(135deg, rgba(127,214,255,0.06), transparent 44%);
+      color: #dceaf7;
+    }
+
+    .stormfront-layout .frame::before {
+      background:
+        radial-gradient(circle at 18% 12%, rgba(125,215,255,0.18), transparent 18%),
+        radial-gradient(circle at 82% 24%, rgba(255,255,255,0.14), transparent 16%),
+        linear-gradient(135deg, rgba(125,215,255,0.08), transparent 38%, rgba(255,255,255,0.03) 90%);
+      mix-blend-mode: screen;
+    }
+
+    .stormfront-layout .animated-header,
+    .stormfront-layout .animated-ribbon,
+    .stormfront-layout .animated-meta,
+    .stormfront-layout .eyebrow,
+    .stormfront-layout .subtitle,
+    .stormfront-layout .edition-row,
+    .stormfront-layout .lede,
+    .stormfront-layout .quote-kicker,
+    .stormfront-layout .quote-meta,
+    .stormfront-layout .fact-label,
+    .stormfront-layout .section-meta,
+    .stormfront-layout .forecast-name,
+    .stormfront-layout .forecast-extra,
+    .stormfront-layout .forecast-meta,
+    .stormfront-layout .apparent,
+    .stormfront-layout .condition,
+    .stormfront-layout .animated-summary {
+      color: rgba(220, 234, 247, 0.8);
+    }
+
+    .stormfront-layout .title,
+    .stormfront-layout .headline,
+    .stormfront-layout .temperature,
+    .stormfront-layout .fact-value,
+    .stormfront-layout .section-title {
+      color: #f4fbff;
+    }
+
+    .stormfront-layout .animated-stage {
+      border-color: rgba(98, 185, 223, 0.28);
+      background:
+        radial-gradient(circle at 12% 12%, rgba(127,214,255,0.16), transparent 24%),
+        radial-gradient(circle at 88% 18%, rgba(255,255,255,0.08), transparent 20%),
+        linear-gradient(180deg, rgba(32,48,68,0.82), rgba(9,16,27,0.96));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 18px 36px rgba(2,7,12,0.34);
+    }
+
+    .stormfront-layout .animated-story {
+      background:
+        linear-gradient(180deg, rgba(17,30,45,0.72), rgba(10,17,29,0.54)),
+        linear-gradient(135deg, rgba(127,214,255,0.08), transparent 60%);
+      border: 1px solid rgba(98, 185, 223, 0.16);
+      backdrop-filter: blur(10px);
+    }
+
+    .stormfront-layout .storm-facts-card {
+      background:
+        linear-gradient(180deg, rgba(16,28,42,0.72), rgba(10,16,26,0.48)),
+        linear-gradient(135deg, rgba(127,214,255,0.12), transparent 58%);
+      border: 1px solid rgba(98, 185, 223, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .stormfront-layout .facts-label,
+    .stormfront-layout .current-label,
+    .stormfront-layout .story-kicker {
+      color: #8fdfff;
+      background: rgba(127,214,255,0.08);
+      border-color: rgba(127,214,255,0.22);
+    }
+
+    .stormfront-layout .animated-reading-card {
+      border-color: rgba(98, 185, 223, 0.28);
+      background:
+        radial-gradient(circle at 50% 18%, rgba(159,226,255,0.22), transparent 22%),
+        linear-gradient(180deg, rgba(15,27,41,0.86), rgba(9,16,26,0.62)),
+        linear-gradient(135deg, rgba(127,214,255,0.08), transparent 60%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 16px 34px rgba(2,7,12,0.28);
+    }
+
+    .stormfront-layout .animated-reading-card::after {
+      background: radial-gradient(circle, rgba(127,214,255,0.26), rgba(127,214,255,0));
+    }
+
+    .stormfront-layout .icon-medallion {
+      background:
+        radial-gradient(circle at 50% 28%, rgba(255,255,255,0.94), rgba(166,231,255,0.74) 48%, rgba(61,116,149,0.94) 100%);
+      border-color: rgba(143,223,255,0.84);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.62), 0 0 30px rgba(127,214,255,0.22);
+      color: #0f2333;
+    }
+
+    .stormfront-layout .fact,
+    .stormfront-layout .forecast-item,
+    .stormfront-layout .almanac-item,
+    .stormfront-layout .alert {
+      background:
+        linear-gradient(180deg, rgba(15,27,41,0.72), rgba(8,14,24,0.54)),
+        linear-gradient(135deg, rgba(127,214,255,0.05), transparent 58%);
+      border-color: rgba(98, 185, 223, 0.16);
+    }
+
+    .stormfront-layout .quote-card {
+      background:
+        linear-gradient(180deg, rgba(17,30,45,0.82), rgba(9,17,29,0.6)),
+        linear-gradient(135deg, rgba(127,214,255,0.08), transparent 60%);
+      border-color: rgba(98, 185, 223, 0.16);
+    }
+
+    .navani-layout .bureau-story,
+    .navani-layout .bureau-reading-card,
+    .navani-layout .bureau-facts,
+    .navani-layout .fact,
+    .navani-layout .forecast-item,
+    .navani-layout .almanac-item,
+    .navani-layout .quote-card {
+      background:
+        linear-gradient(180deg, rgba(250,242,225,0.82), rgba(228,206,166,0.5)),
+        repeating-linear-gradient(0deg, rgba(109,82,39,0.06) 0 1px, transparent 1px 28px),
+        repeating-linear-gradient(90deg, rgba(109,82,39,0.05) 0 1px, transparent 1px 28px);
+      border-color: rgba(152, 112, 45, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    .navani-layout .bureau-story {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .navani-layout .bureau-story::after {
+      content: "";
+      position: absolute;
+      inset: 16px auto 16px 16px;
+      width: 3px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(198,141,60,0.8), rgba(198,141,60,0.06));
+      opacity: 0.9;
+    }
+
+    .navani-layout .story-kicker {
+      background: rgba(198,141,60,0.14);
+      border-style: dashed;
+      border-color: rgba(152, 112, 45, 0.28);
+      color: #7b5421;
+    }
+
+    .navani-layout .bureau-reading-card {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .navani-layout .bureau-reading-card::before {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border: 1px dashed rgba(152, 112, 45, 0.24);
+      border-radius: 14px;
+      pointer-events: none;
+    }
+
+    .navani-layout .current-label,
+    .navani-layout .facts-label {
+      color: #8b5d21;
+    }
+
+    .navani-layout .bureau-reading {
+      justify-items: center;
+      text-align: center;
+    }
+
+    .navani-layout .bureau-layout .temperature,
+    .navani-layout .bureau-layout .condition,
+    .navani-layout .bureau-layout .apparent {
+      text-align: center;
+    }
+
+    .navani-layout .icon-medallion {
+      width: 100px;
+      height: 100px;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(255,255,255,0.92), rgba(255,224,167,0.82) 48%, rgba(162,104,28,0.94) 100%);
+      border-color: rgba(184,131,56,0.82);
+      color: #5a390d;
+    }
+
+    .navani-layout .bureau-facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .navani-layout .fact,
+    .navani-layout .almanac-item {
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    }
+
+    .navani-layout .forecast-item {
+      text-align: left;
+    }
+
+    .navani-layout .forecast-item::before {
+      content: "";
+      display: block;
+      width: 42px;
+      height: 2px;
+      margin-bottom: 10px;
+      background: color-mix(in srgb, var(--zs-prophet-accent) 72%, white);
+      opacity: 0.8;
+    }
+
+    .navani-layout .quote-body {
+      font-style: normal;
+    }
+
     .debug-panel {
       display: grid;
       gap: 8px;
@@ -2812,6 +3131,10 @@ ZSDailyProphetCard.styles = i$5 `
       }
 
       .archive-header {
+        grid-template-columns: 1fr;
+      }
+
+      .archive-reading-grid {
         grid-template-columns: 1fr;
       }
 
