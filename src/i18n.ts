@@ -2,6 +2,7 @@ export type LocaleKey = 'pl' | 'en';
 
 type Dictionary = {
   eyebrow: string;
+  archiveStamp: string;
   defaultTitle: string;
   updated: string;
   feelsLike: string;
@@ -9,7 +10,11 @@ type Dictionary = {
   forecastTitle: string;
   almanacTitle: string;
   quoteTitle: string;
+  currentTitle: string;
+  factsTitle: string;
+  watchLabel: string;
   quoteRotation: Record<'forecast' | 'twice_daily' | 'hybrid', string>;
+  forecastModeLabels: Record<'hourly' | 'daily', string>;
   noForecast: string;
   chanceOfRain: string;
   low: string;
@@ -29,6 +34,7 @@ type Dictionary = {
 const TRANSLATIONS: Record<LocaleKey, Dictionary> = {
   en: {
     eyebrow: 'Stormwarden Atmospheric Archive',
+    archiveStamp: 'Urithiru Archive Seal',
     defaultTitle: 'Stormlight Weather Archive',
     updated: 'Updated',
     feelsLike: 'Feels like',
@@ -36,10 +42,17 @@ const TRANSLATIONS: Record<LocaleKey, Dictionary> = {
     forecastTitle: 'Storm Path Outlook',
     almanacTitle: 'Light Cycle',
     quoteTitle: 'Field Notes',
+    currentTitle: 'Current Conditions',
+    factsTitle: 'Measured Readings',
+    watchLabel: 'Watch',
     quoteRotation: {
       forecast: 'Changes with forecast shifts',
       twice_daily: 'Changes twice each day',
       hybrid: 'Changes with forecast or each watch',
+    },
+    forecastModeLabels: {
+      hourly: 'hourly cadence',
+      daily: 'daily cadence',
     },
     noForecast: 'No spanreed forecast has arrived from the tower.',
     chanceOfRain: 'Rain chance',
@@ -194,6 +207,7 @@ const TRANSLATIONS: Record<LocaleKey, Dictionary> = {
   },
   pl: {
     eyebrow: 'Archiwum Pogodowe Strażników Burz',
+    archiveStamp: 'Pieczęć archiwum Urithiru',
     defaultTitle: 'Archiwum Burzowego Światła',
     updated: 'Aktualizacja',
     feelsLike: 'Odczuwalna',
@@ -201,10 +215,17 @@ const TRANSLATIONS: Record<LocaleKey, Dictionary> = {
     forecastTitle: 'Szlak burzy',
     almanacTitle: 'Cykl światła',
     quoteTitle: 'Notatka z terenu',
+    currentTitle: 'Bieżące warunki',
+    factsTitle: 'Pomiary',
+    watchLabel: 'Wachta',
     quoteRotation: {
       forecast: 'Zmiana wraz ze zmianą prognozy',
       twice_daily: 'Zmiana dwa razy dziennie',
       hybrid: 'Zmiana przy prognozie lub każdej warcie',
+    },
+    forecastModeLabels: {
+      hourly: 'rytm godzinowy',
+      daily: 'rytm dzienny',
     },
     noForecast: 'Do wieży nie dotarła dziś żadna prognoza ze spanreedu.',
     chanceOfRain: 'Szansa opadów',

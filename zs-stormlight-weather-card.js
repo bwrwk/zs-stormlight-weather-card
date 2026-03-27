@@ -40,6 +40,7 @@ const t={ATTRIBUTE:1},e=t=>(...e)=>({_$litDirective$:t,values:e});let i$1 = clas
 const TRANSLATIONS = {
     en: {
         eyebrow: 'Stormwarden Atmospheric Archive',
+        archiveStamp: 'Urithiru Archive Seal',
         defaultTitle: 'Stormlight Weather Archive',
         updated: 'Updated',
         feelsLike: 'Feels like',
@@ -47,10 +48,17 @@ const TRANSLATIONS = {
         forecastTitle: 'Storm Path Outlook',
         almanacTitle: 'Light Cycle',
         quoteTitle: 'Field Notes',
+        currentTitle: 'Current Conditions',
+        factsTitle: 'Measured Readings',
+        watchLabel: 'Watch',
         quoteRotation: {
             forecast: 'Changes with forecast shifts',
             twice_daily: 'Changes twice each day',
             hybrid: 'Changes with forecast or each watch',
+        },
+        forecastModeLabels: {
+            hourly: 'hourly cadence',
+            daily: 'daily cadence',
         },
         noForecast: 'No spanreed forecast has arrived from the tower.',
         chanceOfRain: 'Rain chance',
@@ -205,6 +213,7 @@ const TRANSLATIONS = {
     },
     pl: {
         eyebrow: 'Archiwum Pogodowe Strażników Burz',
+        archiveStamp: 'Pieczęć archiwum Urithiru',
         defaultTitle: 'Archiwum Burzowego Światła',
         updated: 'Aktualizacja',
         feelsLike: 'Odczuwalna',
@@ -212,10 +221,17 @@ const TRANSLATIONS = {
         forecastTitle: 'Szlak burzy',
         almanacTitle: 'Cykl światła',
         quoteTitle: 'Notatka z terenu',
+        currentTitle: 'Bieżące warunki',
+        factsTitle: 'Pomiary',
+        watchLabel: 'Wachta',
         quoteRotation: {
             forecast: 'Zmiana wraz ze zmianą prognozy',
             twice_daily: 'Zmiana dwa razy dziennie',
             hybrid: 'Zmiana przy prognozie lub każdej warcie',
+        },
+        forecastModeLabels: {
+            hourly: 'rytm godzinowy',
+            daily: 'rytm dzienny',
         },
         noForecast: 'Do wieży nie dotarła dziś żadna prognoza ze spanreedu.',
         chanceOfRain: 'Szansa opadów',
@@ -963,7 +979,7 @@ class ZSDailyProphetCard extends i$2 {
         return {
             type: `custom:${CARD_TAG}`,
             entity: 'weather.home',
-            title: 'Archiwum Burzowego Światła',
+            title: 'Archiwum Burzowego ĹšwiatĹ‚a',
             subtitle: 'Raport pogodowy Rosharu',
             location: 'Urithiru i okolice',
             style: {
@@ -1287,6 +1303,9 @@ class ZSDailyProphetCard extends i$2 {
             '--zs-prophet-hero-padding': density.heroPadding,
         };
     }
+    getForecastModeLabel(mode) {
+        return this.t.forecastModeLabels[mode] || mode;
+    }
     async fetchForecastFromService(forecastType) {
         const callApi = this.hass?.callApi;
         if (!callApi || !this.config?.entity) {
@@ -1432,9 +1451,19 @@ class ZSDailyProphetCard extends i$2 {
         if (!this.isWeatherBureau && !this.isAnimatedFrontPage) {
             return b `
         <div class="masthead">
-          <div class="eyebrow">${this.t.eyebrow}</div>
-          <div class="title">${this.config.title || this.t.defaultTitle}</div>
-          ${this.config.subtitle ? b `<div class="subtitle">${this.config.subtitle}</div>` : ''}
+          <div class="archive-header">
+            <div class="archive-sigil" aria-hidden="true"></div>
+            <div class="archive-copy">
+              <div class="eyebrow">${this.t.eyebrow}</div>
+              <div class="title">${this.config.title || this.t.defaultTitle}</div>
+              ${this.config.subtitle ? b `<div class="subtitle">${this.config.subtitle}</div>` : ''}
+            </div>
+            <div class="archive-meta">
+              <div class="archive-meta-chip">${this.t.archiveStamp}</div>
+              <div>${snapshot.friendlyName}</div>
+              <div>${this.t.updated}: ${snapshot.lastUpdatedLabel}</div>
+            </div>
+          </div>
         </div>
       `;
         }
@@ -1491,7 +1520,7 @@ class ZSDailyProphetCard extends i$2 {
         return b `
       <aside class="quote-card">
         <div class="quote-kicker">${this.t.quoteTitle}</div>
-        <div class="quote-body">“${quote.text}”</div>
+        <div class="quote-body">"${quote.text}"</div>
         <div class="quote-meta">
           <span>${this.t.quoteInspiredBy}: ${quote.characterLabel}</span>
           <span>${quote.rotationLabel}</span>
@@ -1509,11 +1538,13 @@ class ZSDailyProphetCard extends i$2 {
                 <span>${snapshot.friendlyName}</span>
                 <span>${this.t.updated}: ${snapshot.lastUpdatedLabel}</span>
               </div>
+              <div class="story-kicker">${this.t.currentTitle}</div>
               ${headline ? b `<div class="headline">${headline}</div>` : ''}
               <div class="lede">${snapshot.attribution || this.config.location || snapshot.friendlyName}</div>
               ${this.renderQuoteBlock(snapshot, forecastItems)}
             </div>
-            <div class="facts">
+            <div class="facts storm-facts-card">
+              <div class="facts-label">${this.t.factsTitle}</div>
               ${facts.map((fact) => b `
                 <div class="fact">
                   <div class="fact-label">${fact.label}</div>
@@ -1524,7 +1555,8 @@ class ZSDailyProphetCard extends i$2 {
           </div>
 
           <div class=${`hero-side ${this.config.style?.animated_hero ? 'animated' : ''}`}>
-            <div class="prophet-reading-card">
+            <div class="storm-reading-card">
+              <div class="current-label">${this.t.currentTitle}</div>
               <div class="icon-medallion">${getConditionIcon(snapshot.condition)}</div>
               <div class="bureau-reading">
                 <div class="temperature">${snapshot.temperature !== undefined ? `${Math.round(snapshot.temperature)}°` : '-'}</div>
@@ -1554,10 +1586,12 @@ class ZSDailyProphetCard extends i$2 {
                 <span>${snapshot.friendlyName}</span>
                 <span>${this.t.updated}: ${snapshot.lastUpdatedLabel}</span>
               </div>
+              <div class="story-kicker">${this.t.currentTitle}</div>
               ${headline ? b `<div class="headline">${headline}</div>` : ''}
               <div class="lede">${snapshot.attribution || this.config.location || snapshot.friendlyName}</div>
               ${this.renderQuoteBlock(snapshot, forecastItems)}
-              <div class="facts">
+              <div class="facts storm-facts-card">
+                <div class="facts-label">${this.t.factsTitle}</div>
                 ${facts.map((fact) => b `
                   <div class="fact">
                     <div class="fact-label">${fact.label}</div>
@@ -1568,6 +1602,7 @@ class ZSDailyProphetCard extends i$2 {
             </div>
 
             <div class=${`animated-reading-card ${this.config.style?.animated_hero ? 'animated' : ''}`}>
+              <div class="current-label">${this.t.currentTitle}</div>
               <div class="icon-medallion">${getConditionIcon(snapshot.condition)}</div>
               <div class="animated-reading">
                 <div class="temperature">${snapshot.temperature !== undefined ? `${Math.round(snapshot.temperature)}°` : '-'}</div>
@@ -1592,6 +1627,7 @@ class ZSDailyProphetCard extends i$2 {
             <span>${snapshot.friendlyName}</span>
             <span>${this.t.updated}: ${snapshot.lastUpdatedLabel}</span>
           </div>
+          <div class="story-kicker">${this.t.currentTitle}</div>
           ${headline ? b `<div class="headline">${headline}</div>` : ''}
           <div class="lede">${snapshot.attribution || this.config.location || snapshot.friendlyName}</div>
           ${this.renderQuoteBlock(snapshot, forecastItems)}
@@ -1599,6 +1635,7 @@ class ZSDailyProphetCard extends i$2 {
 
         <div class="bureau-side">
           <div class="bureau-reading-card">
+            <div class="current-label">${this.t.currentTitle}</div>
             <div class="icon-medallion">${getConditionIcon(snapshot.condition)}</div>
             <div class="bureau-reading">
               <div class="temperature">${snapshot.temperature !== undefined ? `${Math.round(snapshot.temperature)}°` : '-'}</div>
@@ -1613,7 +1650,8 @@ class ZSDailyProphetCard extends i$2 {
             </div>
           </div>
 
-          <div class="bureau-facts">
+          <div class="bureau-facts storm-facts-card">
+            <div class="facts-label">${this.t.factsTitle}</div>
             ${facts.map((fact) => b `
               <div class="fact">
                 <div class="fact-label">${fact.label}</div>
@@ -1667,9 +1705,9 @@ class ZSDailyProphetCard extends i$2 {
           ${this.config.style?.show_forecast === false ? '' : b `
             <section class="section">
               <div class="section-header">
-                <div class="section-title">${this.t.forecastTitle}</div>
-                <div class="section-meta">${forecastMode}</div>
-              </div>
+              <div class="section-title">${this.t.forecastTitle}</div>
+              <div class="section-meta">${this.getForecastModeLabel(forecastMode)}</div>
+            </div>
               ${forecastItems.length
             ? b `<div class="forecast">${forecastItems.map((item) => this.renderForecastItem(item, forecastMode))}</div>`
             : b `<div class="empty">${this.t.noForecast}</div>`}
@@ -1751,6 +1789,16 @@ ZSDailyProphetCard.styles = i$5 `
       box-shadow: inset 0 0 0 1px rgba(255, 248, 230, 0.26), 0 16px 32px var(--zs-prophet-shadow);
     }
 
+    .frame::after {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: 18px;
+      border: 1px solid color-mix(in srgb, var(--zs-prophet-border) 24%, transparent);
+      pointer-events: none;
+      opacity: 0.8;
+    }
+
     .frame::before {
       content: "";
       position: absolute;
@@ -1778,11 +1826,75 @@ ZSDailyProphetCard.styles = i$5 `
 
     .masthead {
       display: grid;
-      gap: 4px;
-      justify-items: center;
-      text-align: center;
-      padding-bottom: 14px;
+      gap: 10px;
+      padding-bottom: 16px;
       border-bottom: 1px solid color-mix(in srgb, var(--zs-prophet-border) 48%, transparent);
+    }
+
+    .archive-header {
+      display: grid;
+      grid-template-columns: 84px minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .archive-sigil {
+      position: relative;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--zs-prophet-border) 50%, transparent);
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.28), transparent 38%),
+        radial-gradient(circle at center, color-mix(in srgb, var(--zs-prophet-accent) 26%, transparent) 0 18%, transparent 19% 100%);
+      box-shadow: inset 0 0 0 10px rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+    }
+
+    .archive-sigil::before,
+    .archive-sigil::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--zs-prophet-border) 40%, transparent);
+    }
+
+    .archive-sigil::after {
+      inset: 28px;
+      background: color-mix(in srgb, var(--zs-prophet-accent) 64%, transparent);
+      border: none;
+      clip-path: polygon(50% 0%, 61% 32%, 100% 50%, 61% 68%, 50% 100%, 39% 68%, 0% 50%, 39% 32%);
+      opacity: 0.9;
+    }
+
+    .archive-copy {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .archive-meta {
+      display: grid;
+      gap: 6px;
+      justify-items: end;
+      text-align: right;
+      font-family: var(--zs-prophet-copy);
+      color: var(--zs-prophet-muted);
+      font-size: 0.94rem;
+    }
+
+    .archive-meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--zs-prophet-border) 36%, transparent);
+      background: color-mix(in srgb, var(--zs-prophet-accent-soft) 100%, transparent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
     }
 
     .bureau-header {
@@ -1949,7 +2061,7 @@ ZSDailyProphetCard.styles = i$5 `
 
     .hero {
       display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(210px, 0.9fr);
+      grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.95fr);
       gap: 18px;
       align-items: stretch;
     }
@@ -1972,6 +2084,20 @@ ZSDailyProphetCard.styles = i$5 `
       background:
         linear-gradient(180deg, rgba(255,255,255,0.24), rgba(255,255,255,0.08)),
         color-mix(in srgb, var(--zs-prophet-accent-soft) 100%, transparent);
+    }
+
+    .story-kicker {
+      display: inline-flex;
+      justify-self: start;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--zs-prophet-border) 30%, transparent);
+      background: rgba(255, 255, 255, 0.12);
+      font-size: 0.75rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--zs-prophet-muted);
+      font-family: var(--zs-prophet-copy);
     }
 
     .lead-copy {
@@ -2290,7 +2416,7 @@ ZSDailyProphetCard.styles = i$5 `
       min-height: 260px;
     }
 
-    .prophet-reading-card {
+    .storm-reading-card {
       display: grid;
       gap: 14px;
       justify-items: center;
@@ -2312,10 +2438,38 @@ ZSDailyProphetCard.styles = i$5 `
       min-width: 0;
     }
 
-    .prophet-reading-card > .bureau-reading {
+    .storm-reading-card > .bureau-reading {
       width: 100%;
       justify-items: center;
       text-align: center;
+    }
+
+    .storm-reading-card,
+    .storm-facts-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .storm-reading-card::before,
+    .storm-facts-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--zs-prophet-accent) 18%, transparent), transparent 40%),
+        linear-gradient(180deg, rgba(255,255,255,0.12), transparent 28%);
+      pointer-events: none;
+    }
+
+    .current-label,
+    .facts-label {
+      position: relative;
+      z-index: 1;
+      font-family: var(--zs-prophet-copy);
+      font-size: 0.74rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--zs-prophet-muted);
     }
 
     .bureau-layout .temperature,
@@ -2655,6 +2809,17 @@ ZSDailyProphetCard.styles = i$5 `
       .bureau-hero,
       .bureau-reading-card {
         grid-template-columns: 1fr;
+      }
+
+      .archive-header {
+        grid-template-columns: 1fr;
+      }
+
+      .archive-sigil,
+      .archive-meta {
+        justify-self: start;
+        text-align: left;
+        justify-items: start;
       }
 
       .bureau-meta {
