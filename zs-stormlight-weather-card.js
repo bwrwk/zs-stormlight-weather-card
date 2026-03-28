@@ -1846,12 +1846,25 @@ ZSDailyProphetCard.styles = i$5 `
       position: absolute;
       inset: 0;
       pointer-events: none;
-      opacity: 0.18;
+      opacity: 0.34;
       background-image:
-        radial-gradient(rgba(79, 51, 23, 0.28) 0.55px, transparent 0.7px),
-        radial-gradient(rgba(255, 251, 239, 0.45) 0.55px, transparent 0.8px);
-      background-size: 18px 18px, 24px 24px;
-      background-position: 0 0, 11px 9px;
+        radial-gradient(rgba(79, 51, 23, 0.22) 0.7px, transparent 0.9px),
+        radial-gradient(rgba(255, 251, 239, 0.42) 0.7px, transparent 1px),
+        linear-gradient(135deg, rgba(61, 86, 104, 0.08), transparent 34%, rgba(61, 86, 104, 0.04) 66%, transparent 100%);
+      background-size: 16px 16px, 24px 24px, 100% 100%;
+      background-position: 0 0, 11px 9px, 0 0;
+      mix-blend-mode: multiply;
+    }
+
+    .paper-texture::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.22;
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.12) 0 1px, transparent 1px 22px),
+        repeating-linear-gradient(90deg, rgba(31, 49, 63, 0.03) 0 1px, transparent 1px 28px);
     }
 
     .masthead {
@@ -2279,9 +2292,9 @@ ZSDailyProphetCard.styles = i$5 `
       content: "";
       position: absolute;
       inset: 0;
-      background-image: linear-gradient(110deg, transparent 0 46%, rgba(120, 124, 162, 0.24) 47%, transparent 49%, transparent 100%);
-      background-size: 28px 28px;
-      animation: rainFall 1.15s linear infinite;
+      background-image: linear-gradient(110deg, transparent 0 45%, rgba(147, 201, 232, 0.34) 46%, transparent 48%, transparent 100%);
+      background-size: 24px 24px;
+      animation: rainFall 0.95s linear infinite;
     }
 
     .animated-rain::after {
@@ -2542,6 +2555,17 @@ ZSDailyProphetCard.styles = i$5 `
       opacity: 0.75;
     }
 
+    .hero-side.animated::after {
+      content: "";
+      position: absolute;
+      inset: 10% 14% auto 14%;
+      height: 120px;
+      background: radial-gradient(circle, rgba(169, 213, 241, 0.22), rgba(169, 213, 241, 0));
+      filter: blur(16px);
+      animation: pulseGlow 6.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
     .icon-medallion {
       width: 124px;
       height: 124px;
@@ -2770,7 +2794,8 @@ ZSDailyProphetCard.styles = i$5 `
     .urithiru-layout .lead {
       background:
         linear-gradient(180deg, rgba(240,247,250,0.54), rgba(181,202,215,0.18)),
-        linear-gradient(135deg, rgba(127,169,195,0.12), transparent 58%);
+        linear-gradient(135deg, rgba(127,169,195,0.12), transparent 58%),
+        repeating-linear-gradient(0deg, rgba(61,86,104,0.035) 0 1px, transparent 1px 30px);
       border-color: rgba(84, 117, 139, 0.2);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
     }
@@ -2778,7 +2803,8 @@ ZSDailyProphetCard.styles = i$5 `
     .urithiru-layout .storm-facts-card {
       background:
         linear-gradient(180deg, rgba(226,235,240,0.78), rgba(184,199,209,0.32)),
-        linear-gradient(90deg, rgba(127,169,195,0.1), transparent 48%);
+        linear-gradient(90deg, rgba(127,169,195,0.1), transparent 48%),
+        repeating-linear-gradient(90deg, rgba(61,86,104,0.035) 0 1px, transparent 1px 26px);
       border-color: rgba(84, 117, 139, 0.18);
     }
 
@@ -2788,6 +2814,17 @@ ZSDailyProphetCard.styles = i$5 `
         linear-gradient(180deg, rgba(90,117,136,0.28), rgba(45,61,74,0.1)),
         linear-gradient(180deg, rgba(224,232,238,0.92), rgba(163,178,190,0.86));
       border-color: rgba(84, 117, 139, 0.24);
+    }
+
+    .urithiru-layout .hero-side::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 22% 24%, rgba(255,255,255,0.22), transparent 18%),
+        repeating-linear-gradient(135deg, rgba(71,102,123,0.055) 0 2px, transparent 2px 18px);
+      opacity: 0.72;
+      pointer-events: none;
     }
 
     .urithiru-layout .storm-reading-card {
@@ -2894,6 +2931,19 @@ ZSDailyProphetCard.styles = i$5 `
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 18px 36px rgba(2,7,12,0.34);
     }
 
+    .stormfront-layout .animated-stage.condition-rainy::before,
+    .stormfront-layout .animated-stage.condition-pouring::before,
+    .stormfront-layout .animated-stage.condition-lightning_rainy::before {
+      animation: pulseGlow 3.8s ease-in-out infinite;
+    }
+
+    .stormfront-layout .animated-stage.condition-lightning::after,
+    .stormfront-layout .animated-stage.condition-lightning_rainy::after {
+      background-image:
+        linear-gradient(180deg, rgba(126, 119, 155, 0.28), rgba(126, 119, 155, 0)),
+        radial-gradient(circle at 72% 22%, rgba(255,255,255,0.32), transparent 14%);
+    }
+
     .stormfront-layout .animated-story {
       background:
         linear-gradient(180deg, rgba(17,30,45,0.72), rgba(10,17,29,0.54)),
@@ -2954,6 +3004,15 @@ ZSDailyProphetCard.styles = i$5 `
         linear-gradient(180deg, rgba(17,30,45,0.82), rgba(9,17,29,0.6)),
         linear-gradient(135deg, rgba(127,214,255,0.08), transparent 60%);
       border-color: rgba(98, 185, 223, 0.16);
+    }
+
+    .stormfront-layout.paper-texture::after {
+      opacity: 0.22;
+      background-image:
+        radial-gradient(rgba(127,214,255,0.16) 0.7px, transparent 0.95px),
+        linear-gradient(135deg, rgba(255,255,255,0.04), transparent 34%, rgba(127,214,255,0.05) 66%, transparent 100%);
+      background-size: 20px 20px, 100% 100%;
+      mix-blend-mode: screen;
     }
 
     .navani-layout .bureau-story,
@@ -3060,6 +3119,16 @@ ZSDailyProphetCard.styles = i$5 `
 
     .navani-layout .quote-body {
       font-style: normal;
+    }
+
+    .navani-layout.paper-texture::after {
+      opacity: 0.3;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(126, 90, 31, 0.05) 0 1px, transparent 1px 18px),
+        repeating-linear-gradient(90deg, rgba(126, 90, 31, 0.045) 0 1px, transparent 1px 22px),
+        radial-gradient(rgba(120, 79, 21, 0.12) 0.7px, transparent 0.95px);
+      background-size: 100% 100%, 100% 100%, 18px 18px;
+      mix-blend-mode: multiply;
     }
 
     .debug-panel {

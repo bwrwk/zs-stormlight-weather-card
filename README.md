@@ -6,7 +6,7 @@ Karta pogodowa do Home Assistanta inspirowana klimatem "Archiwum burzowego świa
 
 Pierwsza wersja repo zawiera:
 
-- trzy presety wizualne inspirowane Roshar em
+- trzy wyraźnie różne presety wizualne inspirowane Roshar
 - pełną obsługę języka polskiego i angielskiego
 - prognozę opartą o `weather.*` i `weather.get_forecasts`
 - sekcję ostrzeżeń pogodowych
@@ -19,11 +19,11 @@ Pierwsza wersja repo zawiera:
 - `stormfront_warning`
 - `navani_notebook`
 
-`urithiru_archive` to najbardziej zbalansowany wariant startowy.
+`urithiru_archive` to kamienny, chłodny raport archiwum z bardziej reliefową fakturą.
 
-`stormfront_warning` jest bardziej dramatyczny i najlepiej wygląda przy animowanej warstwie burzy.
+`stormfront_warning` jest dramatyczny, ciemny i świetlisty. To właśnie ten preset najlepiej pokazuje animację burzy.
 
-`navani_notebook` ma bardziej techniczny, badawczy charakter.
+`navani_notebook` ma techniczny, badawczy charakter z siatką i szkicownikowym rytmem.
 
 ## Cytaty
 
@@ -40,6 +40,27 @@ Dostępne tryby rotacji:
 - `forecast` - zmiana, gdy zmienia się podpis prognozy
 - `twice_daily` - zmiana dwa razy dziennie
 - `hybrid` - zmiana przy prognozie lub zmianie pory dnia
+
+## Jak podejrzeć animację burzy
+
+Najłatwiej użyć takiej konfiguracji:
+
+```yaml
+type: custom:zs-stormlight-weather-card
+entity: weather.openweathermap
+style:
+  preset: stormfront_warning
+  animated_hero: true
+```
+
+Najmocniej animacja jest widoczna, gdy bieżący stan pogody to:
+
+- `rainy`
+- `pouring`
+- `lightning`
+- `lightning_rainy`
+
+Przy spokojnej pogodzie nadal zobaczysz subtelny ruch chmur i poświaty, ale bez intensywnego efektu deszczu.
 
 ## Przykład
 
