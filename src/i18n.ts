@@ -68,6 +68,7 @@ const TRANSLATIONS: Record<LocaleKey, Dictionary> = {
       weather_entity: 'Weather entity',
       forecast_entity: 'Forecast bridge',
       service_status: 'Forecast API',
+      build_version: 'Build version',
     },
     alertLevels: {
       info: 'Notice',
@@ -241,6 +242,7 @@ const TRANSLATIONS: Record<LocaleKey, Dictionary> = {
       weather_entity: 'Encja pogody',
       forecast_entity: 'Mostek prognozy',
       service_status: 'API prognozy',
+      build_version: 'Wersja buildu',
     },
     alertLevels: {
       info: 'Komunikat',

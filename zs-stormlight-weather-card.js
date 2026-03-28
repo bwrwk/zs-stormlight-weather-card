@@ -74,6 +74,7 @@ const TRANSLATIONS = {
             weather_entity: 'Weather entity',
             forecast_entity: 'Forecast bridge',
             service_status: 'Forecast API',
+            build_version: 'Build version',
         },
         alertLevels: {
             info: 'Notice',
@@ -247,6 +248,7 @@ const TRANSLATIONS = {
             weather_entity: 'Encja pogody',
             forecast_entity: 'Mostek prognozy',
             service_status: 'API prognozy',
+            build_version: 'Wersja buildu',
         },
         alertLevels: {
             info: 'Komunikat',
@@ -864,6 +866,7 @@ function createWeatherSnapshot(hass, config) {
 }
 
 const CARD_TAG = 'zs-stormlight-weather-card';
+const CARD_VERSION = '0.1.1';
 const DEFAULT_CONFIG = {
     type: `custom:${CARD_TAG}`,
     entity: '',
@@ -1222,11 +1225,11 @@ class ZSDailyProphetCard extends i$2 {
         };
     }
     setConfig(config) {
-        const mergedConfig = mergeConfig(config);
-        if (!mergedConfig.entity?.trim()) {
+        if (!config.entity?.trim()) {
             throw new Error('`entity` is required.');
         }
-        this.config = mergedConfig;
+        this.config = config;
+        this.resolvedConfig = mergeConfig(config);
     }
     updated(changedProperties) {
         if (changedProperties.has('hass') || changedProperties.has('config')) {
@@ -1245,7 +1248,7 @@ class ZSDailyProphetCard extends i$2 {
         };
     }
     get language() {
-        const configured = this.config?.content?.condition_labels;
+        const configured = this.effectiveConfig?.content?.condition_labels;
         if (configured && configured !== 'auto') {
             return configured;
         }
@@ -1254,24 +1257,27 @@ class ZSDailyProphetCard extends i$2 {
     get t() {
         return getTranslations(this.language);
     }
+    get effectiveConfig() {
+        return this.resolvedConfig;
+    }
     get preset() {
-        return PRESET_STYLES[this.config.style?.preset || 'urithiru_archive'] || PRESET_STYLES.urithiru_archive;
+        return PRESET_STYLES[this.effectiveConfig.style?.preset || 'urithiru_archive'] || PRESET_STYLES.urithiru_archive;
     }
     get selectedThemeVariables() {
-        const themeName = this.config.style?.ha_theme;
+        const themeName = this.effectiveConfig.style?.ha_theme;
         if (!themeName) {
             return {};
         }
         return { ...(this.hass?.themes?.themes?.[themeName] || {}) };
     }
     get selectedFacts() {
-        return this.config.layout?.facts?.length ? this.config.layout.facts : ['humidity', 'wind', 'pressure', 'precipitation'];
+        return this.effectiveConfig.layout?.facts?.length ? this.effectiveConfig.layout.facts : ['humidity', 'wind', 'pressure', 'precipitation'];
     }
     get isWeatherBureau() {
-        return this.config.style?.preset === 'navani_notebook';
+        return this.effectiveConfig.style?.preset === 'navani_notebook';
     }
     get isAnimatedFrontPage() {
-        return this.config.style?.preset === 'stormfront_warning';
+        return this.effectiveConfig.style?.preset === 'stormfront_warning';
     }
     get isUrithiruArchive() {
         return !this.isAnimatedFrontPage && !this.isWeatherBureau;
@@ -1286,28 +1292,30 @@ class ZSDailyProphetCard extends i$2 {
         return 'urithiru-layout';
     }
     get effectiveForecastMode() {
-        const configured = this.config.layout?.forecast_mode || 'daily';
+        const configured = this.effectiveConfig.layout?.forecast_mode || 'daily';
         return configured === 'hourly' ? 'hourly' : 'daily';
     }
     openMoreInfo() {
-        if (this.config.tap_action?.action === 'none') {
+        const config = this.effectiveConfig;
+        if (config.tap_action?.action === 'none') {
             return;
         }
         const event = new Event('hass-more-info', { bubbles: true, composed: true });
-        event.detail = { entityId: this.config.entity };
+        event.detail = { entityId: config.entity };
         this.dispatchEvent(event);
     }
     computeCardStyle() {
-        const density = getDensityValues(this.config.style?.density);
+        const config = this.effectiveConfig;
+        const density = getDensityValues(config.style?.density);
         return {
             ...this.selectedThemeVariables,
-            '--zs-prophet-card-bg': this.config.style?.background || this.preset.cardBackground,
-            '--zs-prophet-paper': this.config.style?.paper_color || this.preset.paper,
-            '--zs-prophet-ink': this.config.style?.ink_color || this.preset.ink,
+            '--zs-prophet-card-bg': config.style?.background || this.preset.cardBackground,
+            '--zs-prophet-paper': config.style?.paper_color || this.preset.paper,
+            '--zs-prophet-ink': config.style?.ink_color || this.preset.ink,
             '--zs-prophet-muted': this.preset.muted,
-            '--zs-prophet-accent': this.config.style?.accent_color || this.preset.accent,
+            '--zs-prophet-accent': config.style?.accent_color || this.preset.accent,
             '--zs-prophet-accent-soft': this.preset.accentSoft,
-            '--zs-prophet-border': this.config.style?.accent_color || this.preset.border,
+            '--zs-prophet-border': config.style?.accent_color || this.preset.border,
             '--zs-prophet-alert': this.preset.alert,
             '--zs-prophet-shadow': this.preset.shadow,
             '--zs-prophet-card-padding': density.cardPadding,
@@ -1319,29 +1327,30 @@ class ZSDailyProphetCard extends i$2 {
         return this.t.forecastModeLabels[mode] || mode;
     }
     async fetchForecastFromService(forecastType) {
+        const config = this.effectiveConfig;
         const callApi = this.hass?.callApi;
-        if (!callApi || !this.config?.entity) {
+        if (!callApi || !config?.entity) {
             return [];
         }
         const attempts = [
             {
                 path: 'services/weather/get_forecasts?return_response',
                 body: {
-                    target: { entity_id: [this.config.entity] },
+                    target: { entity_id: [config.entity] },
                     data: { type: forecastType },
                 },
             },
             {
                 path: 'services/weather/get_forecasts?return_response=true',
                 body: {
-                    target: { entity_id: [this.config.entity] },
+                    target: { entity_id: [config.entity] },
                     data: { type: forecastType },
                 },
             },
             {
                 path: 'services/weather/get_forecasts?return_response',
                 body: {
-                    entity_id: this.config.entity,
+                    entity_id: config.entity,
                     type: forecastType,
                 },
             },
@@ -1349,7 +1358,7 @@ class ZSDailyProphetCard extends i$2 {
         for (const attempt of attempts) {
             try {
                 const response = await callApi('POST', attempt.path, attempt.body);
-                const forecast = extractForecastResponse(response, this.config.entity);
+                const forecast = extractForecastResponse(response, config.entity);
                 if (forecast.length) {
                     return forecast;
                 }
@@ -1361,10 +1370,11 @@ class ZSDailyProphetCard extends i$2 {
         return [];
     }
     async refreshForecastIfNeeded() {
-        if (!this.hass || !this.config) {
+        const config = this.effectiveConfig;
+        if (!this.hass || !config) {
             return;
         }
-        if (this.config.entities?.forecast_entity) {
+        if (config.entities?.forecast_entity) {
             this.forecastSource = 'forecast_entity';
             this.forecastServiceStatus = 'skipped';
             if (this.serviceForecast.length) {
@@ -1372,7 +1382,7 @@ class ZSDailyProphetCard extends i$2 {
             }
             return;
         }
-        const weatherEntity = this.hass.states?.[this.config.entity];
+        const weatherEntity = this.hass.states?.[config.entity];
         const directForecast = weatherEntity?.attributes?.forecast;
         if (Array.isArray(directForecast) && directForecast.length) {
             this.forecastSource = 'weather_entity';
@@ -1383,7 +1393,7 @@ class ZSDailyProphetCard extends i$2 {
             return;
         }
         const fetchKey = [
-            this.config.entity,
+            config.entity,
             this.effectiveForecastMode,
             weatherEntity?.state || '',
             weatherEntity?.attributes?.temperature ?? '',
@@ -1409,16 +1419,18 @@ class ZSDailyProphetCard extends i$2 {
         this.forecastLoading = false;
     }
     renderDebugPanel(forecastMode, forecastItems) {
-        if (this.config.style?.debug !== true) {
+        const config = this.effectiveConfig;
+        if (config.style?.debug !== true) {
             return '';
         }
         const debugItems = [
-            { label: this.t.debugLabels.weather_entity, value: this.config.entity || '-' },
-            { label: this.t.debugLabels.forecast_entity, value: this.config.entities?.forecast_entity || '-' },
+            { label: this.t.debugLabels.weather_entity, value: config.entity || '-' },
+            { label: this.t.debugLabels.forecast_entity, value: config.entities?.forecast_entity || '-' },
             { label: this.t.debugLabels.forecast_source, value: this.forecastSource },
             { label: this.t.debugLabels.service_status, value: this.forecastServiceStatus },
             { label: this.t.debugLabels.forecast_mode, value: forecastMode },
             { label: this.t.debugLabels.forecast_items, value: String(forecastItems.length) },
+            { label: this.t.debugLabels.build_version, value: CARD_VERSION },
         ];
         return b `
       <section class="debug-panel">
@@ -1457,7 +1469,8 @@ class ZSDailyProphetCard extends i$2 {
     `;
     }
     renderHeader(snapshot) {
-        if (this.config.style?.show_masthead === false) {
+        const config = this.effectiveConfig;
+        if (config.style?.show_masthead === false) {
             return '';
         }
         if (!this.isWeatherBureau && !this.isAnimatedFrontPage) {
@@ -1467,8 +1480,8 @@ class ZSDailyProphetCard extends i$2 {
             <div class="archive-sigil" aria-hidden="true"></div>
             <div class="archive-copy">
               <div class="eyebrow">${this.t.eyebrow}</div>
-              <div class="title">${this.config.title || this.t.defaultTitle}</div>
-              ${this.config.subtitle ? b `<div class="subtitle">${this.config.subtitle}</div>` : ''}
+              <div class="title">${config.title || this.t.defaultTitle}</div>
+              ${config.subtitle ? b `<div class="subtitle">${config.subtitle}</div>` : ''}
             </div>
             <div class="archive-meta">
               <div class="archive-meta-chip">${this.t.archiveStamp}</div>
@@ -1485,8 +1498,8 @@ class ZSDailyProphetCard extends i$2 {
           <div class="animated-ribbon">${this.t.eyebrow}</div>
           <div class="animated-grid">
             <div class="bureau-title">
-              <div class="title">${this.config.title || this.t.defaultTitle}</div>
-              ${this.config.subtitle ? b `<div class="subtitle">${this.config.subtitle}</div>` : ''}
+              <div class="title">${config.title || this.t.defaultTitle}</div>
+              ${config.subtitle ? b `<div class="subtitle">${config.subtitle}</div>` : ''}
             </div>
             <div class="animated-meta">
               <div>${this.t.updated}: ${snapshot.lastUpdatedLabel}</div>
@@ -1504,8 +1517,8 @@ class ZSDailyProphetCard extends i$2 {
         </div>
         <div class="bureau-grid">
           <div class="bureau-title">
-            <div class="title">${this.config.title || this.t.defaultTitle}</div>
-            ${this.config.subtitle ? b `<div class="subtitle">${this.config.subtitle}</div>` : ''}
+            <div class="title">${config.title || this.t.defaultTitle}</div>
+            ${config.subtitle ? b `<div class="subtitle">${config.subtitle}</div>` : ''}
           </div>
           <div class="bureau-meta">
             <div>${this.t.updated}: ${snapshot.lastUpdatedLabel}</div>
@@ -1516,15 +1529,16 @@ class ZSDailyProphetCard extends i$2 {
     `;
     }
     renderQuoteBlock(snapshot, forecastItems) {
-        if (this.config.content?.show_quotes === false) {
+        const config = this.effectiveConfig;
+        if (config.content?.show_quotes === false) {
             return '';
         }
         const quote = selectQuote({
             language: this.language,
             snapshot,
             forecast: forecastItems,
-            rotation: this.config.content?.quote_rotation || 'hybrid',
-            characters: this.config.content?.quote_characters,
+            rotation: config.content?.quote_rotation || 'hybrid',
+            characters: config.content?.quote_characters,
         });
         if (!quote) {
             return '';
@@ -1541,6 +1555,7 @@ class ZSDailyProphetCard extends i$2 {
     `;
     }
     renderHero(snapshot, headline, facts, conditionLabel, forecastItems) {
+        const config = this.effectiveConfig;
         if (!this.isWeatherBureau && !this.isAnimatedFrontPage) {
             return b `
         <section class="hero">
@@ -1552,7 +1567,7 @@ class ZSDailyProphetCard extends i$2 {
               </div>
               <div class="story-kicker">${this.t.currentTitle}</div>
               ${headline ? b `<div class="headline">${headline}</div>` : ''}
-              <div class="lede">${snapshot.attribution || this.config.location || snapshot.friendlyName}</div>
+              <div class="lede">${snapshot.attribution || config.location || snapshot.friendlyName}</div>
               ${this.renderQuoteBlock(snapshot, forecastItems)}
             </div>
             <div class="facts storm-facts-card">
@@ -1566,7 +1581,7 @@ class ZSDailyProphetCard extends i$2 {
             </div>
           </div>
 
-          <div class=${`hero-side ${this.config.style?.animated_hero ? 'animated' : ''}`}>
+          <div class=${`hero-side ${config.style?.animated_hero ? 'animated' : ''}`}>
             <div class="storm-reading-card">
               <div class="current-label">${this.t.currentTitle}</div>
               <div class="archive-reading-grid">
@@ -1602,7 +1617,7 @@ class ZSDailyProphetCard extends i$2 {
               </div>
               <div class="story-kicker">${this.t.currentTitle}</div>
               ${headline ? b `<div class="headline">${headline}</div>` : ''}
-              <div class="lede">${snapshot.attribution || this.config.location || snapshot.friendlyName}</div>
+              <div class="lede">${snapshot.attribution || config.location || snapshot.friendlyName}</div>
               ${this.renderQuoteBlock(snapshot, forecastItems)}
               <div class="facts storm-facts-card">
                 <div class="facts-label">${this.t.factsTitle}</div>
@@ -1615,7 +1630,7 @@ class ZSDailyProphetCard extends i$2 {
               </div>
             </div>
 
-            <div class=${`animated-reading-card ${this.config.style?.animated_hero ? 'animated' : ''}`}>
+            <div class=${`animated-reading-card ${config.style?.animated_hero ? 'animated' : ''}`}>
               <div class="current-label">${this.t.currentTitle}</div>
               <div class="icon-medallion">${getConditionIcon(snapshot.condition)}</div>
               <div class="animated-reading">
@@ -1643,7 +1658,7 @@ class ZSDailyProphetCard extends i$2 {
           </div>
           <div class="story-kicker">${this.t.currentTitle}</div>
           ${headline ? b `<div class="headline">${headline}</div>` : ''}
-          <div class="lede">${snapshot.attribution || this.config.location || snapshot.friendlyName}</div>
+          <div class="lede">${snapshot.attribution || config.location || snapshot.friendlyName}</div>
           ${this.renderQuoteBlock(snapshot, forecastItems)}
         </div>
 
@@ -1681,25 +1696,26 @@ class ZSDailyProphetCard extends i$2 {
         if (!this.config || !this.hass) {
             return b `<ha-card><div class="empty">Loading archive...</div></ha-card>`;
         }
-        const snapshot = createWeatherSnapshot(this.hass, this.config);
+        const config = this.effectiveConfig;
+        const snapshot = createWeatherSnapshot(this.hass, config);
         const facts = buildFacts(snapshot, this.selectedFacts, this.language);
-        const headline = this.config.content?.headline_mode === 'none'
+        const headline = config.content?.headline_mode === 'none'
             ? ''
-            : this.config.content?.headline_mode === 'custom' && this.config.content.headline_template
-                ? this.config.content.headline_template
+            : config.content?.headline_mode === 'custom' && config.content.headline_template
+                ? config.content.headline_template
                 : buildHeadline(snapshot, this.language);
         const combinedForecast = snapshot.forecast.length ? snapshot.forecast : this.serviceForecast;
-        const forecastItems = combinedForecast.slice(0, this.config.layout?.forecast_items || 5);
-        const forecastMode = resolveForecastMode(this.config.layout?.forecast_mode || 'daily', combinedForecast);
+        const forecastItems = combinedForecast.slice(0, config.layout?.forecast_items || 5);
+        const forecastMode = resolveForecastMode(config.layout?.forecast_mode || 'daily', combinedForecast);
         const conditionLabel = this.t.conditions[snapshot.condition] || snapshot.condition;
         return b `
-      <ha-card style=${o(this.computeCardStyle())} @click=${() => this.openMoreInfo()}>
-        <div class=${`frame ${this.config.style?.paper_texture === false ? '' : 'paper-texture'} ${this.isWeatherBureau ? 'bureau-layout' : ''} ${this.isAnimatedFrontPage ? 'animated-layout' : ''} ${this.presetLayoutClass}`}>
+      <ha-card style=${o(this.computeCardStyle())} data-version=${CARD_VERSION} @click=${() => this.openMoreInfo()}>
+        <div class=${`frame ${config.style?.paper_texture === false ? '' : 'paper-texture'} ${this.isWeatherBureau ? 'bureau-layout' : ''} ${this.isAnimatedFrontPage ? 'animated-layout' : ''} ${this.presetLayoutClass}`}>
           ${this.renderHeader(snapshot)}
 
           ${this.renderHero(snapshot, headline, facts, conditionLabel, forecastItems)}
 
-          ${this.config.style?.show_alerts === false || !snapshot.alerts.length ? '' : b `
+          ${config.style?.show_alerts === false || !snapshot.alerts.length ? '' : b `
             <section class="section">
               <div class="section-header">
                 <div class="section-title">${this.t.specialEdition}</div>
@@ -1716,10 +1732,10 @@ class ZSDailyProphetCard extends i$2 {
             </section>
           `}
 
-          ${this.config.style?.show_forecast === false ? '' : b `
+          ${config.style?.show_forecast === false ? '' : b `
             <section class="section">
               <div class="section-header">
-              <div class="section-title">${this.t.forecastTitle}</div>
+                <div class="section-title">${this.t.forecastTitle}</div>
               <div class="section-meta">${this.getForecastModeLabel(forecastMode)}</div>
             </div>
               ${forecastItems.length
@@ -1728,7 +1744,7 @@ class ZSDailyProphetCard extends i$2 {
             </section>
           `}
 
-          ${this.config.style?.show_almanac === false ? '' : b `
+          ${config.style?.show_almanac === false ? '' : b `
             <section class="section">
               <div class="section-header">
                 <div class="section-title">${this.t.almanacTitle}</div>
@@ -3184,7 +3200,7 @@ window.customCards.push({
     type: CARD_TAG,
     name: 'ZS Stormlight Weather Card',
     preview: true,
-    description: 'Stormlight Archive inspired weather card for Home Assistant',
+    description: `Stormlight Archive inspired weather card for Home Assistant (${CARD_VERSION})`,
     documentationURL: 'https://github.com/bwrwk/zs-stormlight-weather-card',
 });
 //# sourceMappingURL=zs-stormlight-weather-card.js.map
